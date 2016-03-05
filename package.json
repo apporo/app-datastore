@@ -1,0 +1,25 @@
+{
+  "name": "app-datastore",
+  "version": "0.0.1",
+  "description": "Data Store",
+  "homepage": "https://github.com/devebot/app-datastore.git",
+  "author": {
+    "name": "apporo",
+    "email": "apporo@devebot.com",
+    "url": "http://devebot.com"
+  },
+  "main": "index.js",
+  "engines": {
+    "node": "0.10 || 0.11 || 0.12 || 4"
+  },
+  "keywords": [
+    "devebot",
+    "devebot-plugin"
+  ],
+  "devDependencies": {
+    "devebot": "^0.1.14"
+  },
+  "peerDependencies": {
+    "devebot": "^0.1.14"
+  }
+}
