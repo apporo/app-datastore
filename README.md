@@ -1,3 +1,3 @@
 # app-datastore
 
-> Devebot app-datastore layerware
+> Datastore Devebot layerware
