@@ -1,3 +1,3 @@
 # app-datastore
 
-> Datastore Devebot layerware
+> Devebot backend datastore layerware
