@@ -1,6 +1,6 @@
 {
   "name": "app-datastore",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Devebot backend datastore layerware",
   "homepage": "https://github.com/devebot/app-datastore.git",
   "author": {
@@ -16,19 +16,14 @@
     "devebot",
     "devebot-plugin"
   ],
-  "devDependencies": {
-    "app-datamodel": "^0.0.1",
-    "app-webserver": "^0.0.3",
-    "devebot": "^0.1.16"
-  },
   "peerDependencies": {
-    "app-datamodel": "^0.0.1",
-    "app-webserver": "^0.0.3",
-    "devebot": "^0.1.16"
+    "app-datamodel": "^0.1.0",
+    "app-webserver": "^0.1.8",
+    "devebot": "^0.1.22"
   },
   "dependencies": {
-    "deployd": "^0.8.8",
-    "skydata": "^0.1.0",
-    "socket.io": "^1.4.5"
+    "app-datamodel": "^0.1.0",
+    "app-webserver": "^0.1.8",
+    "devebot": "^0.1.22"
   }
 }
