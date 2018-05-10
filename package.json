@@ -1,29 +1,48 @@
 {
   "name": "app-datastore",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Devebot backend datastore layerware",
-  "homepage": "https://github.com/devebot/app-datastore.git",
+  "homepage": "https://github.com/apporo/app-datastore.git",
   "author": {
     "name": "apporo",
     "email": "apporo@devebot.com",
     "url": "http://devebot.com"
   },
   "main": "index.js",
-  "engines": {
-    "node": "0.10 || 0.11 || 0.12 || 4"
+  "directories": {
+    "lib": "lib/"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "lib/"
+  ],
+  "scripts": {
+    "build": "babel ./src -d ./lib",
+    "clean": "rm -rf ./lib",
+    "prepublish": "npm run clean && NODE_ENV=${DEVEBOT_NODE_ENV:-production} npm run build",
+    "pretest": "npm run clean && NODE_ENV=${DEVEBOT_NODE_ENV:-test} npm run build",
+    "test": "mocha --recursive test/**/*-test.js",
+    "verify": "npm run prepublish && mocha --recursive test/**/*-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apporo/app-datastore.git"
   },
   "keywords": [
     "devebot",
     "devebot-plugin"
   ],
   "peerDependencies": {
-    "app-datamodel": "^0.1.0",
-    "app-webserver": "^0.1.8",
-    "devebot": "^0.1.22"
+    "devebot": "^0.2.6"
   },
   "dependencies": {
-    "app-datamodel": "^0.1.0",
-    "app-webserver": "^0.1.8",
-    "devebot": "^0.1.22"
+    "devebot": "^0.2.6"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-minify-mangle-names": "^0.3.0",
+    "babel-preset-env": "^1.6.1",
+    "mocha": "^4.1.0"
   }
 }

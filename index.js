@@ -1,1 +1,1 @@
-module.exports = require('devebot').registerLayerware(__dirname, ['app-datamodel', 'app-webserver']);
+module.exports = require('devebot').registerLayerware(__dirname, []);
