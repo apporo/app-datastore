@@ -21,8 +21,7 @@ function DataManipulator(params) {
     text: ' + constructor start ...'
   }));
 
-  let pluginCfg = params.sandboxConfig;
-
+  let pluginCfg = params['sandboxConfig'];
   let schemaManager = params['schemaManager'];
   let mongoAccessor = params['mongoose#manipulator'];
   let normalFieldsOf = {};

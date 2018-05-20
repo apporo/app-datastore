@@ -21,7 +21,7 @@ function SchemaManager(params) {
     text: ' + constructor start ...'
   }));
 
-  let pluginCfg = params.sandboxConfig;
+  let pluginCfg = params['sandboxConfig'];
   let mongoAccessor = params['mongoose#manipulator'];
   let modelMap = {};
 
