@@ -95,47 +95,51 @@ function DataManipulator(params) {
   }
 
   this.get = function(args, opts) {
-    args = args || {};
-    let flow = getModel(args.type);
-    flow = flow.then(function(model) {
-      var p_findById = Promise.promisify(model.findById, {context: model});
-      return p_findById(args.id);
+    return wrap('get', args, opts, function(reqTr, args, opts) {
+      let flow = getModel(args.type);
+      flow = flow.then(function(model) {
+        var p_findById = Promise.promisify(model.findById, {context: model});
+        return p_findById(args.id);
+      });
+      return flow;
     });
-    return flow;
   }
 
   this.create = function(args, opts) {
-    args = args || {};
-    let data = args.data;
-    let flow = getModel(args.type);
-    flow = flow.then(function(model) {
-      var object = new model(lodash.pick(data, pickNormalFields(model)));
-      return Promise.promisify(object.save, {context: object})();
+    return wrap('create', args, opts, function(reqTr, args, opts) {
+      let data = args.data;
+      let flow = getModel(args.type);
+      flow = flow.then(function(model) {
+        var object = new model(lodash.pick(data, pickNormalFields(model)));
+        return Promise.promisify(object.save, {context: object})();
+      });
+      return flow;
     });
-    return flow;
   }
 
   this.update = function(args, opts) {
-    args = args || {};
-    let _id = args.data && args.data._id || args._id || args.id;
-    let data = args.data;
-    let flow = getModel(args.type);
-    flow = flow.then(function(model) {
-      let _update = Promise.promisify(model.update, {context: model});
-      return _update({_id: _id}, lodash.pick(data, pickNormalFields(model)));
+    return wrap('update', args, opts, function(reqTr, args, opts) {
+      let _id = args.data && args.data._id || args._id || args.id;
+      let data = args.data;
+      let flow = getModel(args.type);
+      flow = flow.then(function(model) {
+        let _update = Promise.promisify(model.update, {context: model});
+        return _update({_id: _id}, lodash.pick(data, pickNormalFields(model)));
+      });
+      return flow;
     });
-    return flow;
   }
 
   this.delete = function(args, opts) {
-    args = args || {};
-    let _id = args.data && args.data._id || args._id || args.id;
-    let flow = getModel(args.type);
-    flow = flow.then(function(model) {
-      let _delete = Promise.promisify(model.remove, {context: model});
-      return _delete({_id: _id});
+    return wrap('delete', args, opts, function(reqTr, args, opts) {
+      let _id = args.data && args.data._id || args._id || args.id;
+      let flow = getModel(args.type);
+      flow = flow.then(function(model) {
+        let _delete = Promise.promisify(model.remove, {context: model});
+        return _delete({_id: _id});
+      });
+      return flow;
     });
-    return flow;
   }
 
   LX.has('silly') && LX.log('silly', TR.toMessage({
