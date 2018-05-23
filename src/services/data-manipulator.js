@@ -61,7 +61,24 @@ function DataManipulator(params) {
     opts = opts || {};
     let reqTr = getRequestTracer(opts);
     beginTracing(reqTr, methodName);
-    let flow = Promise.resolve(main(reqTr, args, opts));
+    let transformer = schemaManager.getTransformer(args.type, methodName);
+    if (transformer && lodash.isFunction(transformer.transformInput)) {
+      args = transformer.transformInput(args, opts);
+    }
+    let flow = Promise.resolve().then(lodash.wrap(main(reqTr, args, opts)));
+    if (transformer) {
+      flow = flow.then(function(result) {
+        if (lodash.isFunction(transformer.transformOutput)) {
+          return transformer.transformOutput(result, args, opts);
+        }
+        return result;
+      }).catch(function(error) {
+        if (transformer && lodash.isFunction(transformer.transformError)) {
+          throw transformer.transformError(error, args, opts);
+        }
+        throw error;
+      });
+    }
     return endTracing(reqTr, methodName, args, opts, flow);
   }
 
@@ -89,6 +106,18 @@ function DataManipulator(params) {
       flow = flow.then(function(model) {
         var p_find = Promise.promisify(model.find, {context: model});
         return p_find(query, projection, options);
+      });
+      return flow;
+    });
+  }
+
+  this.findOne = function(args, opts) {
+    return wrap('findOne', args, opts, function(reqTr, args, opts) {
+      let {query={}, projection={}, options={}} = args;
+      let flow = getModel(args.type);
+      flow = flow.then(function(model) {
+        var p_findOne = Promise.promisify(model.findOne, {context: model});
+        return p_findOne(query, projection, options);
       });
       return flow;
     });

@@ -7,6 +7,8 @@ const lodash = Devebot.require('lodash');
 const loader = Devebot.require('loader');
 const path = require('path');
 
+const TRANSFORMATION_NAMES = ['transformInput', 'transformOutput', 'transformError'];
+
 function SchemaManager(params) {
   params = params || {};
 
@@ -24,6 +26,7 @@ function SchemaManager(params) {
   let pluginCfg = params['sandboxConfig'];
   let mongoAccessor = params['mongoose#manipulator'];
   let modelMap = {};
+  let transformationMap = {};
 
   this.hasModel = function(name) {
     return name in modelMap;
@@ -31,6 +34,10 @@ function SchemaManager(params) {
 
   this.getModel = function(name) {
     return modelMap[name];
+  }
+
+  this.getTransformer = function(name, methodName) {
+    return transformationMap[name] && transformationMap[name][methodName] || {};
   }
 
   this.addModel = function(name, descriptor, options) {
@@ -42,11 +49,31 @@ function SchemaManager(params) {
     return model;
   }
 
-  if (pluginCfg.autowired !== false) {
-    let mappings = loader(pluginCfg.mappingStore);
-    lodash.forEach(mappings, function(mapping) {
-      self.addModel(mapping.name, mapping.descriptor, mapping.options);
+  this.register = function(args) {
+    args = args || {};
+    let {name, descriptor, options, interceptors} = args;
+    if (lodash.isString(options)) {
+      options = { collection: options }
+    }
+    var model = mongoAccessor.registerModel(name, descriptor, options);
+    modelMap[name] = model;
+    transformationMap[name] = transformationMap[name] || {};
+    lodash.forEach(interceptors, function(interceptor) {
+      let {methodName} = interceptor;
+      if (lodash.isString(methodName)) {
+        transformationMap[name][methodName] = transformationMap[name][methodName] || {};
+        lodash.forOwn(lodash.omit(interceptor, ['methodName']), function(func, fname) {
+          if (TRANSFORMATION_NAMES.indexOf(fname) >= 0 && lodash.isFunction(func)) {
+            transformationMap[name][methodName][fname] = func;
+          }
+        });
+      }
     });
+    return true;
+  }
+
+  if (pluginCfg.autowired !== false) {
+    lodash.forEach(loader(pluginCfg.mappingStore), self.register);
   }
 
   LX.has('silly') && LX.log('silly', LT.toMessage({
