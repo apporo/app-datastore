@@ -24,7 +24,6 @@ function DataManipulator(params) {
   let pluginCfg = params['sandboxConfig'];
   let schemaManager = params['schemaManager'];
   let mongoAccessor = params['mongoose#manipulator'];
-  let normalFieldsOf = {};
 
   let getRequestId = function(opts) {
     return (opts.requestId = opts.requestId || TR.getLogID());
@@ -62,7 +61,8 @@ function DataManipulator(params) {
     opts = opts || {};
     let reqTr = getRequestTracer(opts);
     beginTracing(reqTr, methodName);
-    return endTracing(reqTr, methodName, args, opts, Promise.resolve(main(reqTr, args, opts)));
+    let flow = Promise.resolve(main(reqTr, args, opts));
+    return endTracing(reqTr, methodName, args, opts, flow);
   }
 
   let getModel = function(name) {
