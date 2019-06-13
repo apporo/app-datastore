@@ -1,6 +1,6 @@
 {
   "name": "app-datastore",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Devebot backend datastore layerware",
   "homepage": "https://github.com/apporo/app-datastore.git",
   "author": {
@@ -35,11 +35,11 @@
     "devebot-plugin"
   ],
   "peerDependencies": {
-    "devebot": "^0.2.6"
+    "devebot": "^0.3.0"
   },
   "dependencies": {
-    "devebot": "^0.2.6",
-    "devebot-co-mongoose": "^0.2.2"
+    "devebot": "^0.3.0",
+    "devebot-co-mongoose": "^0.3.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
