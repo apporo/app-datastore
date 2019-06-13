@@ -2,7 +2,6 @@
 
 const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
-const lodash = Devebot.require('lodash');
 
 function Servlet(params) {
   params = params || {};

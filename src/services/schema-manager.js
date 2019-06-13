@@ -5,7 +5,6 @@ const Promise = Devebot.require('bluebird');
 const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
 const loader = Devebot.require('loader');
-const path = require('path');
 
 const TRANSFORMATION_NAMES = ['transformInput', 'transformOutput', 'transformError'];
 

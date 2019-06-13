@@ -4,7 +4,6 @@ const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
 const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
-const path = require('path');
 const SPECIAL_FIELDS = ['_id', '__v'];
 
 function DataManipulator(params) {
