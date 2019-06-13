@@ -11,4 +11,10 @@ var app = require('devebot').launchApplication({
 
 if (require.main === module) app.server.start();
 
+process.on('SIGINT', function() {
+  app.server.stop().then(function () {
+    console.log("The server has been stopped.");
+  });
+});
+
 module.exports = app;

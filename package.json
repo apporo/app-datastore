@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "devebot": "^0.2.6",
-    "devebot-co-mongoose": "^0.2.0"
+    "devebot-co-mongoose": "^0.2.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

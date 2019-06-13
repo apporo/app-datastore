@@ -11,7 +11,7 @@ module.exports = {
   },
   bridges: {
     mongoose: {
-      application: {
+      appDatastore: {
         manipulator: {
           connection_options: {
             host: '127.0.0.1',
