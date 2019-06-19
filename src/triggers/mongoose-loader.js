@@ -3,21 +3,22 @@
 const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
 
-function Servlet(params) {
-  params = params || {};
-
-  var mongooseManipulator = params['mongoose#manipulator'];
+function Servlet(params = {}) {
+  const mongooseManipulator = params['mongoose#manipulator'];
+  let connected = false;
 
   this.start = function() {
     mongooseManipulator.getConnection();
+    connected = true;
     return Promise.resolve();
   };
 
   this.stop = function() {
-    if (mongooseManipulator != null) {
+    if (connected) {
       let p = mongooseManipulator.disconnect();
       p = p.then(function() {
-        return mongooseManipulator = null;
+        connected = false;
+        return null;
       });
       return p;
     }

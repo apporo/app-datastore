@@ -6,10 +6,7 @@ const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
 const SPECIAL_FIELDS = ['_id', '__v'];
 
-function DataManipulator(params) {
-  params = params || {};
-
-  let self = this;
+function DataManipulator(params = {}) {
   let LX = params.loggingFactory.getLogger();
   let TR = params.loggingFactory.getTracer();
   let packageName = params.packageName || 'app-datastore';
@@ -20,9 +17,7 @@ function DataManipulator(params) {
     text: ' + constructor start ...'
   }));
 
-  let pluginCfg = params['sandboxConfig'];
   let schemaManager = params['schemaManager'];
-  let mongoAccessor = params['mongoose#manipulator'];
 
   let getRequestId = function (opts) {
     return (opts.requestId = opts.requestId || TR.getLogID());
@@ -201,7 +196,6 @@ function DataManipulator(params) {
 
 DataManipulator.referenceList = [
   'schemaManager',
-  'mongoose#manipulator'
 ];
 
 module.exports = DataManipulator;

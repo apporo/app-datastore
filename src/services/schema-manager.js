@@ -8,10 +8,7 @@ const loader = Devebot.require('loader');
 
 const TRANSFORMATION_NAMES = ['transformInput', 'transformOutput', 'transformError'];
 
-function SchemaManager(params) {
-  params = params || {};
-
-  let self = this;
+function SchemaManager(params = {}) {
   let LX = params.loggingFactory.getLogger();
   let LT = params.loggingFactory.getTracer();
   let packageName = params.packageName || 'app-datastore';
@@ -72,7 +69,7 @@ function SchemaManager(params) {
   }
 
   if (pluginCfg.autowired !== false) {
-    lodash.forEach(loader(pluginCfg.mappingStore), self.register);
+    lodash.forEach(loader(pluginCfg.mappingStore), this.register);
   }
 
   LX.has('silly') && LX.log('silly', LT.toMessage({
