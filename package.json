@@ -1,6 +1,6 @@
 {
   "name": "app-datastore",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Devebot backend datastore layerware",
   "homepage": "https://github.com/apporo/app-datastore.git",
   "author": {

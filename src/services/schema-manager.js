@@ -1,28 +1,16 @@
 'use strict';
 
 const Devebot = require('devebot');
-const Promise = Devebot.require('bluebird');
-const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
 const loader = Devebot.require('loader');
 
 const TRANSFORMATION_NAMES = ['transformInput', 'transformOutput', 'transformError'];
 
 function SchemaManager(params = {}) {
-  let LX = params.loggingFactory.getLogger();
-  let LT = params.loggingFactory.getTracer();
-  let packageName = params.packageName || 'app-datastore';
-  let blockRef = chores.getBlockRef(__filename, packageName);
-
-  LX.has('silly') && LX.log('silly', LT.toMessage({
-    tags: [ blockRef, 'constructor-begin' ],
-    text: ' + constructor start ...'
-  }));
-
-  let pluginCfg = params['sandboxConfig'];
-  let mongoAccessor = params['mongoose#manipulator'];
-  let modelMap = {};
-  let transformationMap = {};
+  const { mongoAccessor } = params;
+  const pluginCfg = params['sandboxConfig'] || {};
+  const modelMap = {};
+  const transformationMap = {};
 
   this.hasModel = function(name) {
     return name in modelMap;
@@ -71,15 +59,10 @@ function SchemaManager(params = {}) {
   if (pluginCfg.autowired !== false) {
     lodash.forEach(loader(pluginCfg.mappingStore), this.register);
   }
-
-  LX.has('silly') && LX.log('silly', LT.toMessage({
-    tags: [ blockRef, 'constructor-end' ],
-    text: ' - constructor has finished'
-  }));
 };
 
-SchemaManager.referenceList = [
-  'mongoose#manipulator'
-];
+SchemaManager.referenceHash = {
+  mongoAccessor: 'mongoose#manipulator'
+};
 
 module.exports = SchemaManager;

@@ -7,42 +7,37 @@ const lodash = Devebot.require('lodash');
 const SPECIAL_FIELDS = ['_id', '__v'];
 
 function DataManipulator(params = {}) {
-  let LX = params.loggingFactory.getLogger();
-  let TR = params.loggingFactory.getTracer();
-  let packageName = params.packageName || 'app-datastore';
-  let blockRef = chores.getBlockRef(__filename, packageName);
+  const L = params.loggingFactory.getLogger();
+  const T = params.loggingFactory.getTracer();
+  const packageName = params.packageName || 'app-datastore';
+  const blockRef = chores.getBlockRef(__filename, packageName);
 
-  LX.has('silly') && LX.log('silly', TR.toMessage({
-    tags: [blockRef, 'constructor-begin'],
-    text: ' + constructor start ...'
-  }));
+  const schemaManager = params['schemaManager'];
 
-  let schemaManager = params['schemaManager'];
-
-  let getRequestId = function (opts) {
-    return (opts.requestId = opts.requestId || TR.getLogID());
+  const getRequestId = function (opts) {
+    return (opts.requestId = opts.requestId || T.getLogID());
   }
 
-  let getRequestTracer = function (opts) {
-    return TR.branch({ key: 'requestId', value: getRequestId(opts) });
+  const getRequestTracer = function (opts) {
+    return T.branch({ key: 'requestId', value: getRequestId(opts) });
   }
 
-  let beginTracing = function (tracer, methodName) {
-    LX.has('debug') && LX.log('debug', tracer.add({ methodName }).toMessage({
+  const beginTracing = function (tracer, methodName) {
+    L.has('debug') && L.log('debug', tracer.add({ methodName }).toMessage({
       tags: [blockRef, methodName, 'begin'],
       text: ' - [${requestId}] ${methodName}() begin'
     }));
   }
 
-  let endTracing = function (tracer, methodName, args, opts, flow) {
+  const endTracing = function (tracer, methodName, args, opts, flow) {
     return flow.then(function (result) {
-      LX.has('debug') && LX.log('debug', tracer.add({ methodName }).toMessage({
+      L.has('debug') && L.log('debug', tracer.add({ methodName }).toMessage({
         tags: [blockRef, methodName, 'completed'],
         text: ' - [${requestId}] ${methodName}() has completed'
       }));
       return result;
     }).catch(function (error) {
-      LX.has('error') && LX.log('error', tracer.add({ methodName, error }).toMessage({
+      L.has('error') && L.log('error', tracer.add({ methodName, error }).toMessage({
         tags: [blockRef, methodName, 'failed'],
         text: ' - [${requestId}] ${methodName}() has failed. Error: ${error}'
       }));
@@ -50,10 +45,8 @@ function DataManipulator(params = {}) {
     });
   }
 
-  let wrap = function (methodName, args, opts, main) {
-    args = args || {};
-    opts = opts || {};
-    let reqTr = getRequestTracer(opts);
+  const wrap = function (methodName, args = {}, opts = {}, main) {
+    const reqTr = getRequestTracer(opts);
     beginTracing(reqTr, methodName);
     let transformer = schemaManager.getTransformer(args.type, methodName);
     if (transformer && lodash.isFunction(transformer.transformInput)) {
@@ -76,15 +69,15 @@ function DataManipulator(params = {}) {
     return endTracing(reqTr, methodName, args, opts, flow);
   }
 
-  let getModel = function (name) {
+  const getModel = function (name) {
     let model = schemaManager.getModel(name);
     if (!model) return Promise.reject(name);
     return Promise.resolve(model);
   }
 
-  var pickNormalFields = function (model, excluded) {
+  const pickNormalFields = function (model, excluded) {
     excluded = excluded || SPECIAL_FIELDS;
-    var fields = [];
+    let fields = [];
     model.schema.eachPath(function (path) {
       lodash.isArray(excluded) ? excluded.indexOf(path) < 0 ? fields.push(path) : false : path === excluded ? false : fields.push(path);
     });
@@ -98,7 +91,7 @@ function DataManipulator(params = {}) {
       options.limit = options.limit || size;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
-        var doc = model.find(query, projection, options);
+        let doc = model.find(query, projection, options);
         if (populates) {
           populates.forEach(function (polulateArgs) {
             doc.populate(polulateArgs);
@@ -115,7 +108,7 @@ function DataManipulator(params = {}) {
       let { query = {}, projection = {}, options = {} } = args;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
-        var doc = model.findOne(query, projection, options);
+        let doc = model.findOne(query, projection, options);
         if (populates) {
           doc.populate(populates);
         }
@@ -130,7 +123,7 @@ function DataManipulator(params = {}) {
       let { populates = [] } = args;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
-        var doc = model.findById(args.id);
+        let doc = model.findById(args.id);
         if (populates) {
           doc.populate(populates);
         }
@@ -145,7 +138,7 @@ function DataManipulator(params = {}) {
     let {filter={}} = args;
     let flow = getModel(args.type);
     flow = flow.then(function(model) {
-      var p_count = Promise.promisify(model.count, {context: model});
+      let p_count = Promise.promisify(model.countDocuments, {context: model});
       return p_count(filter);
     })
     return flow;
@@ -156,7 +149,7 @@ function DataManipulator(params = {}) {
       let data = args.data;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
-        var object = new model(lodash.pick(data, pickNormalFields(model)));
+        let object = new model(lodash.pick(data, pickNormalFields(model)));
         return Promise.promisify(object.save, { context: object })();
       });
       return flow;
@@ -187,11 +180,6 @@ function DataManipulator(params = {}) {
       return flow;
     });
   }
-
-  LX.has('silly') && LX.log('silly', TR.toMessage({
-    tags: [blockRef, 'constructor-end'],
-    text: ' - constructor has finished'
-  }));
 };
 
 DataManipulator.referenceList = [
