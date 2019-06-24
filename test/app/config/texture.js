@@ -21,9 +21,7 @@ module.exports = {
       appDatastore: {
         manipulator: {
           methods: {
-            getConnection: {
-              useDefaultTexture: true
-            }
+            getConnection: {}
           }
         }
       }

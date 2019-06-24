@@ -4,18 +4,18 @@ const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
 
 function Servlet(params = {}) {
-  const mongooseManipulator = params['mongoose#manipulator'];
+  const { mongoAccessor } = params;
   let connected = false;
 
   this.start = function() {
-    mongooseManipulator.getConnection();
+    params.mongoAccessor.getConnection();
     connected = true;
     return Promise.resolve();
   };
 
   this.stop = function() {
     if (connected) {
-      let p = mongooseManipulator.disconnect();
+      let p = mongoAccessor.disconnect();
       p = p.then(function() {
         connected = false;
         return null;
@@ -26,6 +26,8 @@ function Servlet(params = {}) {
   };
 };
 
-Servlet.referenceList = [ "mongoose#manipulator" ];
+Servlet.referenceHash = {
+  mongoAccessor: 'mongoose#manipulator'
+};
 
 module.exports = Servlet;
