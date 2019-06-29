@@ -19,15 +19,6 @@ function DataManipulator(params = {}) {
     return Promise.resolve(model);
   }
 
-  const pickNormalFields = function (model, excluded) {
-    excluded = excluded || SPECIAL_FIELDS;
-    let fields = [];
-    model.schema.eachPath(function (path) {
-      lodash.isArray(excluded) ? excluded.indexOf(path) < 0 ? fields.push(path) : false : path === excluded ? false : fields.push(path);
-    });
-    return fields;
-  };
-
   this.find = function (args, opts) {
     return wrap(ctx, 'find', args, opts, function (reqTr, args, opts) {
       let { query = {}, projection = {}, options = {}, populates = [], from, size } = args;
@@ -171,7 +162,7 @@ function wrap(ctx = {}, methodName, args = {}, opts = {}, main) {
   const { schemaManager } = ctx;
   const reqTr = getRequestTracer(ctx, opts);
   beginTracing(ctx, reqTr, methodName);
-  let transformer = schemaManager.getTransformer(args.type, methodName);
+  const transformer = schemaManager.getTransformer(args.type, methodName);
   if (transformer && lodash.isFunction(transformer.transformInput)) {
     args = transformer.transformInput(args, opts);
   }
@@ -191,3 +182,12 @@ function wrap(ctx = {}, methodName, args = {}, opts = {}, main) {
   }
   return endTracing(ctx, reqTr, methodName, args, opts, flow);
 }
+
+function pickNormalFields(model, excluded) {
+  excluded = excluded || SPECIAL_FIELDS;
+  let fields = [];
+  model.schema.eachPath(function (path) {
+    lodash.isArray(excluded) ? excluded.indexOf(path) < 0 ? fields.push(path) : false : path === excluded ? false : fields.push(path);
+  });
+  return fields;
+};

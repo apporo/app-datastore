@@ -7,6 +7,15 @@ var sinon = require('sinon');
 var dtk = require('../index');
 
 describe('data-manipulator', function() {
+  describe('pickNormalFields()', function() {
+    var DataManipulator, pickNormalFields;
+
+    beforeEach(function() {
+      DataManipulator = dtk.acquire('data-manipulator');
+      pickNormalFields = dtk.get(DataManipulator, 'pickNormalFields');
+    });
+  });
+
   describe('wrap()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
