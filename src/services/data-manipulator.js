@@ -10,33 +10,8 @@ function DataManipulator(params = {}) {
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
   const blockRef = chores.getBlockRef(__filename, params.packageName || 'app-datastore');
-  const ctx = { L, T, blockRef };
-
   const schemaManager = params['schemaManager'];
-
-  const wrap = function (methodName, args = {}, opts = {}, main) {
-    const reqTr = getRequestTracer(ctx, opts);
-    beginTracing(ctx, reqTr, methodName);
-    let transformer = schemaManager.getTransformer(args.type, methodName);
-    if (transformer && lodash.isFunction(transformer.transformInput)) {
-      args = transformer.transformInput(args, opts);
-    }
-    let flow = Promise.resolve().then(lodash.wrap(main(reqTr, args, opts)));
-    if (transformer) {
-      flow = flow.then(function (result) {
-        if (lodash.isFunction(transformer.transformOutput)) {
-          return transformer.transformOutput(result, args, opts);
-        }
-        return result;
-      }).catch(function (error) {
-        if (transformer && lodash.isFunction(transformer.transformError)) {
-          throw transformer.transformError(error, args, opts);
-        }
-        throw error;
-      });
-    }
-    return endTracing(ctx, reqTr, methodName, args, opts, flow);
-  }
+  const ctx = { L, T, blockRef, schemaManager };
 
   const getModel = function (name) {
     let model = schemaManager.getModel(name);
@@ -54,7 +29,7 @@ function DataManipulator(params = {}) {
   };
 
   this.find = function (args, opts) {
-    return wrap('find', args, opts, function (reqTr, args, opts) {
+    return wrap(ctx, 'find', args, opts, function (reqTr, args, opts) {
       let { query = {}, projection = {}, options = {}, populates = [], from, size } = args;
       options.skip = options.skip || from;
       options.limit = options.limit || size;
@@ -73,7 +48,7 @@ function DataManipulator(params = {}) {
   }
 
   this.findOne = function (args, opts) {
-    return wrap('findOne', args, opts, function (reqTr, args, opts) {
+    return wrap(ctx, 'findOne', args, opts, function (reqTr, args, opts) {
       let { query = {}, projection = {}, options = {} } = args;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
@@ -88,7 +63,7 @@ function DataManipulator(params = {}) {
   }
 
   this.get = function (args, opts) {
-    return wrap('get', args, opts, function (reqTr, args, opts) {
+    return wrap(ctx, 'get', args, opts, function (reqTr, args, opts) {
       let { populates = [] } = args;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
@@ -114,7 +89,7 @@ function DataManipulator(params = {}) {
   }
 
   this.create = function (args, opts) {
-    return wrap('create', args, opts, function (reqTr, args, opts) {
+    return wrap(ctx, 'create', args, opts, function (reqTr, args, opts) {
       let data = args.data;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
@@ -126,7 +101,7 @@ function DataManipulator(params = {}) {
   }
 
   this.update = function (args, opts) {
-    return wrap('update', args, opts, function (reqTr, args, opts) {
+    return wrap(ctx, 'update', args, opts, function (reqTr, args, opts) {
       let _id = args.data && args.data._id || args._id || args.id;
       let data = args.data;
       let flow = getModel(args.type);
@@ -139,7 +114,7 @@ function DataManipulator(params = {}) {
   }
 
   this.delete = function (args, opts) {
-    return wrap('delete', args, opts, function (reqTr, args, opts) {
+    return wrap(ctx, 'delete', args, opts, function (reqTr, args, opts) {
       let _id = args.data && args.data._id || args._id || args.id;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
@@ -190,4 +165,29 @@ function endTracing(ctx = {}, tracer, methodName, args, opts, flow) {
     }));
     return Promise.reject(error);
   });
+}
+
+function wrap(ctx = {}, methodName, args = {}, opts = {}, main) {
+  const { schemaManager } = ctx;
+  const reqTr = getRequestTracer(ctx, opts);
+  beginTracing(ctx, reqTr, methodName);
+  let transformer = schemaManager.getTransformer(args.type, methodName);
+  if (transformer && lodash.isFunction(transformer.transformInput)) {
+    args = transformer.transformInput(args, opts);
+  }
+  let flow = Promise.resolve().then(lodash.wrap(main(reqTr, args, opts)));
+  if (transformer) {
+    flow = flow.then(function (result) {
+      if (lodash.isFunction(transformer.transformOutput)) {
+        return transformer.transformOutput(result, args, opts);
+      }
+      return result;
+    }).catch(function (error) {
+      if (transformer && lodash.isFunction(transformer.transformError)) {
+        throw transformer.transformError(error, args, opts);
+      }
+      throw error;
+    });
+  }
+  return endTracing(ctx, reqTr, methodName, args, opts, flow);
 }
