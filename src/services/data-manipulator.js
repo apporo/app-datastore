@@ -9,45 +9,14 @@ const SPECIAL_FIELDS = ['_id', '__v'];
 function DataManipulator(params = {}) {
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
-  const packageName = params.packageName || 'app-datastore';
-  const blockRef = chores.getBlockRef(__filename, packageName);
+  const blockRef = chores.getBlockRef(__filename, params.packageName || 'app-datastore');
+  const ctx = { L, T, blockRef };
 
   const schemaManager = params['schemaManager'];
 
-  const getRequestId = function (opts) {
-    return (opts.requestId = opts.requestId || T.getLogID());
-  }
-
-  const getRequestTracer = function (opts) {
-    return T.branch({ key: 'requestId', value: getRequestId(opts) });
-  }
-
-  const beginTracing = function (tracer, methodName) {
-    L.has('debug') && L.log('debug', tracer.add({ methodName }).toMessage({
-      tags: [blockRef, methodName, 'begin'],
-      text: ' - [${requestId}] ${methodName}() begin'
-    }));
-  }
-
-  const endTracing = function (tracer, methodName, args, opts, flow) {
-    return flow.then(function (result) {
-      L.has('debug') && L.log('debug', tracer.add({ methodName }).toMessage({
-        tags: [blockRef, methodName, 'completed'],
-        text: ' - [${requestId}] ${methodName}() has completed'
-      }));
-      return result;
-    }).catch(function (error) {
-      L.has('error') && L.log('error', tracer.add({ methodName, error }).toMessage({
-        tags: [blockRef, methodName, 'failed'],
-        text: ' - [${requestId}] ${methodName}() has failed. Error: ${error}'
-      }));
-      return Promise.reject(error);
-    });
-  }
-
   const wrap = function (methodName, args = {}, opts = {}, main) {
-    const reqTr = getRequestTracer(opts);
-    beginTracing(reqTr, methodName);
+    const reqTr = getRequestTracer(ctx, opts);
+    beginTracing(ctx, reqTr, methodName);
     let transformer = schemaManager.getTransformer(args.type, methodName);
     if (transformer && lodash.isFunction(transformer.transformInput)) {
       args = transformer.transformInput(args, opts);
@@ -66,7 +35,7 @@ function DataManipulator(params = {}) {
         throw error;
       });
     }
-    return endTracing(reqTr, methodName, args, opts, flow);
+    return endTracing(ctx, reqTr, methodName, args, opts, flow);
   }
 
   const getModel = function (name) {
@@ -187,3 +156,38 @@ DataManipulator.referenceList = [
 ];
 
 module.exports = DataManipulator;
+
+function getRequestId(ctx = {}, opts) {
+  const { T } = ctx;
+  return (opts.requestId = opts.requestId || T.getLogID());
+}
+
+function getRequestTracer(ctx = {}, opts) {
+  const { T } = ctx;
+  return T.branch({ key: 'requestId', value: getRequestId(ctx, opts) });
+}
+
+function beginTracing(ctx = {}, tracer, methodName) {
+  const { L, blockRef } = ctx;
+  L.has('debug') && L.log('debug', tracer.add({ methodName }).toMessage({
+    tags: [blockRef, methodName, 'begin'],
+    text: ' - [${requestId}] ${methodName}() begin'
+  }));
+}
+
+function endTracing(ctx = {}, tracer, methodName, args, opts, flow) {
+  const { L, blockRef } = ctx;
+  return flow.then(function (result) {
+    L.has('debug') && L.log('debug', tracer.add({ methodName }).toMessage({
+      tags: [blockRef, methodName, 'completed'],
+      text: ' - [${requestId}] ${methodName}() has completed'
+    }));
+    return result;
+  }).catch(function (error) {
+    L.has('error') && L.log('error', tracer.add({ methodName, error }).toMessage({
+      tags: [blockRef, methodName, 'failed'],
+      text: ' - [${requestId}] ${methodName}() has failed. Error: ${error}'
+    }));
+    return Promise.reject(error);
+  });
+}
