@@ -3,6 +3,10 @@
 const Devebot = require('devebot');
 const lodash = Devebot.require('lodash');
 const loader = Devebot.require('loader');
+const chores = Devebot.require('chores');
+
+const BUILTIN_MAPPING_LOADER = chores.isVersionLTE && chores.getVersionOf &&
+    chores.isVersionLTE("0.3.1", chores.getVersionOf("devebot"));
 
 const TRANSFORMATION_NAMES = ['transformInput', 'transformOutput', 'transformError'];
 
@@ -56,8 +60,16 @@ function SchemaManager(params = {}) {
     return true;
   }
 
+  let mappingHash;
+  if (BUILTIN_MAPPING_LOADER) {
+    mappingHash = params.mappingLoader.loadMappings(pluginCfg.mappingStore);
+  } else {
+    mappingHash = loadMappings(pluginCfg.mappingStore);
+  }
+  const mappings = joinMappings(mappingHash);
+
   if (pluginCfg.autowired !== false) {
-    lodash.forEach(loader(pluginCfg.mappingStore), this.register);
+    lodash.forEach(mappings, this.register);
   }
 };
 
@@ -65,4 +77,33 @@ SchemaManager.referenceHash = {
   mongoAccessor: 'mongoose#manipulator'
 };
 
+if (BUILTIN_MAPPING_LOADER) {
+  SchemaManager.referenceHash = {
+    mongoAccessor: 'mongoose#manipulator',
+    "mappingLoader": "devebot/mappingLoader"
+  };
+}
+
 module.exports = SchemaManager;
+
+function loadMappings (mappingStore) {
+  const mappingMap = {};
+  if (lodash.isString(mappingStore)) {
+    let store = {};
+    store[chores.getUUID()] = mappingStore;
+    mappingStore = store;
+  }
+  if (lodash.isObject(mappingStore)) {
+    lodash.forOwn(mappingStore, function(path, name) {
+      mappingMap[name] = require(path);
+    });
+  }
+  return mappingMap;
+}
+
+function joinMappings (mappingMap, mappings = []) {
+  lodash.forOwn(mappingMap, function(mappingList, name) {
+    mappings.push.apply(mappings, mappingList);
+  });
+  return mappings;
+}
