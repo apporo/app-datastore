@@ -6,6 +6,7 @@ module.exports = {
   },
   plugins: {
     appDatastore: {
+      isLazyLoad: true,
       mappingStore: path.join(__dirname, '../lib/mappings/products')
     }
   },

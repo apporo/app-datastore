@@ -2,7 +2,6 @@
 
 const Devebot = require('devebot');
 const lodash = Devebot.require('lodash');
-const loader = Devebot.require('loader');
 const chores = Devebot.require('chores');
 
 const BUILTIN_MAPPING_LOADER = chores.isVersionLTE && chores.getVersionOf &&
@@ -37,14 +36,11 @@ function SchemaManager(params = {}) {
     return model;
   }
 
-  this.register = function(args) {
-    args = args || {};
-    let {name, descriptor, options, interceptors} = args;
+  this.register = function({name, descriptor, options, interceptors} = {}) {
     if (lodash.isString(options)) {
       options = { collection: options }
     }
-    var model = mongoAccessor.registerModel(name, descriptor, options);
-    modelMap[name] = model;
+    modelMap[name] = mongoAccessor.registerModel(name, descriptor, options);
     transformationMap[name] = transformationMap[name] || {};
     lodash.forEach(interceptors, function(interceptor) {
       let {methodName} = interceptor;
@@ -80,7 +76,7 @@ SchemaManager.referenceHash = {
 if (BUILTIN_MAPPING_LOADER) {
   SchemaManager.referenceHash = {
     mongoAccessor: 'mongoose#manipulator',
-    "mappingLoader": "devebot/mappingLoader"
+    mappingLoader: "devebot/mappingLoader"
   };
 }
 
