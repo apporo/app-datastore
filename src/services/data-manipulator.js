@@ -40,7 +40,7 @@ function DataManipulator(params = {}) {
 
   this.findOne = function (args, opts) {
     return wrap(ctx, 'findOne', args, opts, function (reqTr, args, opts) {
-      let { query = {}, projection = {}, options = {} } = args;
+      let { query = {}, projection = {}, options = {}, populates = [] } = args;
       let flow = getModel(args.type);
       flow = flow.then(function (model) {
         let doc = model.findOne(query, projection, options);
